@@ -10,21 +10,56 @@ class CoaAdmin(admin.ModelAdmin):
         readonly_fields = ('id', )
         return list_display
 
-@admin.register(BudgetClass)
+@admin.register(BudgetCode)
 class BudgetClassAdmin(admin.ModelAdmin):
     def get_list_display(self, request):
         list_display = [field.name for field in self.model._meta.get_fields() if isinstance(field, Field)]
         readonly_fields = ('id', )
         return list_display
 
-@admin.register(AnnualBudget)
+@admin.register(BudgetCompanies)
 class AnnualBudgetAdmin(admin.ModelAdmin):
     def get_list_display(self, request):
         list_display = [field.name for field in self.model._meta.get_fields() if isinstance(field, Field)]
         readonly_fields = ('id', )
         return list_display
 
-@admin.register(MonthlyBudget)
+@admin.register(BudgetUnits)
+class MonthlyBudgetAdmin(admin.ModelAdmin):
+    def get_list_display(self, request):
+        list_display = [field.name for field in self.model._meta.get_fields() if isinstance(field, Field)]
+        readonly_fields = ('id', )
+        return list_display
+
+@admin.register(YearlyTarget)
+class MonthlyBudgetAdmin(admin.ModelAdmin):
+    def get_list_display(self, request):
+        list_display = [field.name for field in self.model._meta.get_fields() if isinstance(field, Field)]
+        readonly_fields = ('id', )
+        return list_display
+
+@admin.register(MonthlyTarget)
+class MonthlyBudgetAdmin(admin.ModelAdmin):
+    def get_list_display(self, request):
+        list_display = [field.name for field in self.model._meta.get_fields() if isinstance(field, Field)]
+        readonly_fields = ('id', )
+        return list_display
+
+@admin.register(UnitTarget)
+class MonthlyBudgetAdmin(admin.ModelAdmin):
+    def get_list_display(self, request):
+        list_display = [field.name for field in self.model._meta.get_fields() if isinstance(field, Field)]
+        readonly_fields = ('id', )
+        return list_display
+
+@admin.register(TargetProduct)
+class MonthlyBudgetAdmin(admin.ModelAdmin):
+    def get_list_display(self, request):
+        list_display = [field.name for field in self.model._meta.get_fields() if isinstance(field, Field)]
+        readonly_fields = ('id', )
+        return list_display
+
+@admin.register(BudgetUnitYear)
 class MonthlyBudgetAdmin(admin.ModelAdmin):
     def get_list_display(self, request):
         list_display = [field.name for field in self.model._meta.get_fields() if isinstance(field, Field)]

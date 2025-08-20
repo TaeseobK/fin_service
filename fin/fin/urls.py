@@ -23,9 +23,12 @@ from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 router = DefaultRouter()
 
 router.register(r'master/coa', CoaViewSet)
-router.register(r'master/budget-class', BudgetClassViewSet)
-router.register(r'master/annual-budget', AnnualBudgetViewSet)
-router.register(r'master/monthly-budget', MonhtlyBudgetViewSet)
+router.register(r'master/budget-code', BudgetCodeViewSet)
+router.register(r'master/yearly-target', YearlyTargetViewSet)
+router.register(r'master/monthly-target', MonthlyTargetViewSet)
+router.register(r'master/unit-target', UnitTargetViewSet)
+router.register(r'master/product-target', TargetProductViewSet)
+router.register(r'master/budget-unit-yearly', BudgetUnitYearViewSet)
 
 urlpatterns = [
     path('admin/', admin.site.urls),

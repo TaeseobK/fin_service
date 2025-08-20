@@ -48,6 +48,7 @@ INSTALLED_APPS = [
 
 REST_FRAMEWORK = {
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+    "EXCEPTION_HANDLER": "fin.config.custom_exception_handler",
 }
 
 SPECTACULAR_SETTINGS = {
@@ -76,7 +77,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'fin.auth_middleware.VerifyAuthTokenMiddleware',
+    'fin.auth_middleware.VerifyAuthMiddleware',
     'fin.auth_middleware.AuthServiceLogoutMiddleware',
 ]
 

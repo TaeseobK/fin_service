@@ -160,26 +160,44 @@ class CoaSerializer(BaseTreeSerializer):
         model = Coa
         fields = '__all__'
 
-class BudgetClassSerializer(BaseTreeSerializer):
+class BudgetCodeSerializer(BaseTreeSerializer):
     parent = SmartRecursive(read_only=True, mode='parent')
     children = SmartRecursive(read_only=True, many=True, mode='children')
 
     class Meta:
-        model = BudgetClass
+        model = BudgetCode
         fields = '__all__'
 
-class AnnualBudgetSerializer(BaseTreeSerializer):
-    parent = SmartRecursive(read_only=True, mode='parent')
-    children = SmartRecursive(read_only=True, many=True, mode='children')
-
+class YearlyTargetSerializer(BaseTreeSerializer):
     class Meta:
-        model = AnnualBudget
+        model = YearlyTarget
         fields = '__all__'
 
-class MonthlyBudgetSerializer(BaseTreeSerializer):
-    parent = SmartRecursive(read_only=True, mode='parent')
-    children = SmartRecursive(read_only=True, many=True, mode='children')
+class MonthlyTargetSerializer(BaseTreeSerializer):
+    yearly = YearlyTargetSerializer(read_only=True)
+    class Meta:
+        model = MonthlyTarget
+        fields = '__all__'
+
+class UnitTargetSerializer(BaseTreeSerializer):
+    target_yearly = YearlyTargetSerializer(read_only=True)
 
     class Meta:
-        model = MonthlyBudget
+        model = UnitTarget
+        fields = '__all__'
+
+class TargetProductSerializer(BaseTreeSerializer):
+    unit = UnitTargetSerializer(many=True, read_only=True)
+    year = YearlyTargetSerializer(read_only=True)
+
+    class Meta:
+        model = TargetProduct
+        fields = '__all__'
+
+class BudgetUnitYearSerializer(BaseTreeSerializer):
+    code = BudgetCodeSerializer(read_only=True)
+    year = YearlyTargetSerializer(read_only=True)
+
+    class Meta:
+        model = BudgetUnitYear
         fields = '__all__'
