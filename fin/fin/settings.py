@@ -88,6 +88,14 @@ AUTHENTICATION_BACKENDS = [
     "django.contrib.auth.backends.ModelBackend",
 ]
 
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'FIN_SERVICE',
+    'DESCRIPTION': f'Documentation for consuming API from FINANCE Databases\n\nWARNING NOTES:\n\n{Path("keys/warning.md").read_text(encoding='utf-8')}',
+    'VERSION': '1.0.0',
+    'SERVE_INCLUDE_SCHEMA': True,
+}
+
+
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',

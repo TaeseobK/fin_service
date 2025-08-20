@@ -58,3 +58,6 @@ class BudgetUnitYearFilter(BaseFilter):
     class Meta:
         model = BudgetUnitYear
         fields = []
+
+CoaFilter.init_dynamic(Coa)
+BudgetCodeFilter.init_dynamic(BudgetCode)
