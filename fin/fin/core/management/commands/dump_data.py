@@ -5,7 +5,7 @@ from django.conf import settings
 from django.core.management.base import BaseCommand, CommandError
 
 from fin_dump.models import FinDump
-from fin.config import *
+from fin.local_settings import TELEGRAM_TOKEN, CHAT_IDS
 
 import requests
 
@@ -56,14 +56,15 @@ class Command(BaseCommand):
 
         print(f"[FIN_DUMP] Data saved successfully at {filepath}")
 
-        send_json(
-            file_path=filepath,
-            token=TELEGRAM_TOKEN,
-            chat_id=CHAT_ID,
-            row_count=len(data),
-            month_str=month_str,
-            year_str=year_str
-        )
+        for i in CHAT_IDS:
+            send_json(
+                file_path=filepath,
+                token=TELEGRAM_TOKEN,
+                chat_id=i,
+                row_count=len(data),
+                month_str=month_str,
+                year_str=year_str
+            )
 
         # hapus data setelah dump
         count, _ = qs.delete()

@@ -7,7 +7,7 @@ from django.core.management.base import BaseCommand, CommandError
 import requests
 import psutil
 
-from fin.config import *
+from fin.local_settings import TELEGRAM_TOKEN, CHAT_IDS
 
 class Command(BaseCommand):
     help = "Run checking server data."
@@ -31,17 +31,18 @@ class Command(BaseCommand):
             f"📡 Network: Sent {net.bytes_sent / (1024**2):.2f} MB, Recv {net.bytes_recv / (1024**2):.2f} MB"
         )
 
-        url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
-        payload = {
-            "chat_id": CHAT_ID,
-            "text": msg,
-            "parse_mode": "HTML"
-        }
-        try:
-            resp = requests.post(url, data=payload)
-            if resp.status_code == 200:
-                self.stdout.write("[Telegram] Message sent successfully")
-            else:
-                self.stdout.write(f"[Telegram] Failed: {resp.text}")
-        except Exception as e:
-            self.stdout.write(f"[Telegram] Exception: {e}")
+        for i in CHAT_IDS:
+            url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
+            payload = {
+                "chat_id": i,
+                "text": msg,
+                "parse_mode": "HTML"
+            }
+            try:
+                resp = requests.post(url, data=payload)
+                if resp.status_code == 200:
+                    self.stdout.write("[Telegram] Message sent successfully")
+                else:
+                    self.stdout.write(f"[Telegram] Failed: {resp.text}")
+            except Exception as e:
+                self.stdout.write(f"[Telegram] Exception: {e}")
