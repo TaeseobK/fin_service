@@ -6,8 +6,10 @@ import requests, jwt
 from .thread_locals import *
 from django.http import JsonResponse
 from django.utils.deprecation import MiddlewareMixin
+from pathlib import Path
+from .local_settings import BASE_DIR
 
-PUBLIC_KEY = open("keys/public.pem").read()
+PUBLIC_KEY = Path(BASE_DIR, 'keys/public.pem').read()
 
 class VerifyAuthMiddleware(MiddlewareMixin):
     def process_request(self, request):
