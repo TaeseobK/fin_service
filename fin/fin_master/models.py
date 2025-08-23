@@ -142,8 +142,7 @@ class UnitTarget(BaseModel):
 class TargetProduct(BaseModel):
     units = models.ManyToManyField('UnitTarget', related_name='products')
     year = models.ForeignKey('YearlyTarget', on_delete=models.CASCADE, related_name='year_product', db_index=True)
-    product_id = models.IntegerField(null=True, blank=True)
-    product_name = models.CharField(max_length=32)
+    product = models.ForeignKey('Product', on_delete=models.CASCADE, related_name='product_target', db_index=True)
     value = models.DecimalField(max_digits=16, decimal_places=2)
 
     class Meta:
@@ -151,7 +150,8 @@ class TargetProduct(BaseModel):
         managed = True
         verbose_name_plural = 'TargetProducts'
         indexes = [
-            models.Index(fields=['year'])
+            models.Index(fields=['year']),
+            models.Index(fields=['product'])
         ]
 
     def __str__(self):
