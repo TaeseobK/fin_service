@@ -21,6 +21,25 @@ class Coa(BaseModel):
 
     def __str__(self):
         return f"{self.code} - {self.description}"
+    
+class Product(BaseModel):
+    name = models.CharField(max_length=64)
+    code = models.CharField(max_length=24, unique=True)
+
+    unit_id = models.IntegerField(db_index=True)
+
+    parent = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, blank=True, db_index=True, related_name='children')
+    class Meta:
+        db_table = 'products'
+        managed = True
+        verbose_name_plural = 'Products'
+        indexes = [
+            models.Index(fields=['unit_id']),
+            models.Index(fields=['parent'])
+        ]
+    
+    def __str__(self):
+        return f"{self.name} - {self.code}"
 
 class BudgetCode(BaseModel):
     coas = models.ManyToManyField('Coa', related_name='coas')
