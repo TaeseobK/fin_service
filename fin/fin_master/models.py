@@ -1,176 +1,117 @@
-from django.db import models
+from fin.local_settings import *
 from fin.config import BaseModel
-import calendar
+from django.db import models
 
-# Create your models here.
-class Coa(BaseModel):
-    name = models.CharField(max_length=64)
+class Product(BaseModel):
+    name = models.CharField(max_length=100)
     code = models.CharField(max_length=24, unique=True)
-
-    description = models.TextField(null=True, blank=True)
+    image = models.ImageField(upload_to='product_images/', null=True, blank=True)
 
     parent = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, blank=True, related_name='children', db_index=True)
-
-    class Meta:
-        db_table = 'coas'
-        managed = True
-        verbose_name_plural = 'Coas'
-        indexes = [
-            models.Index(fields=['parent'])
-        ]
-
-    def __str__(self):
-        return f"{self.code} - {self.description}"
     
-class Product(BaseModel):
-    name = models.CharField(max_length=64)
-    code = models.CharField(max_length=24, unique=True)
-
-    unit_id = models.IntegerField(db_index=True)
-
-    parent = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, blank=True, db_index=True, related_name='children')
     class Meta:
         db_table = 'products'
         managed = True
         verbose_name_plural = 'Products'
         indexes = [
-            models.Index(fields=['unit_id']),
-            models.Index(fields=['parent'])
+            models.Index(fields=['parent'], name='children')
         ]
-    
+        
     def __str__(self):
         return f"{self.name} - {self.code}"
-
-class BudgetCode(BaseModel):
-    coas = models.ManyToManyField('Coa', related_name='coas')
-    name = models.CharField(max_length=64, blank=True, null=True)
+    
+class ProductCode(BaseModel):
+    code = models.CharField(max_length=24)
+    product = models.ManyToManyField('Product', related_name='product_codes')
+    
+    class Meta:
+        db_table = 'product_codes'
+        managed = True
+        verbose_name_plural = 'ProductCodes'
+    
+class ProductPrincipal(BaseModel):
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='product_principals')
+    principal_id = models.BigIntegerField()
+    
+    class Meta:
+        db_table = 'product_principals'
+        managed = True
+        verbose_name_plural = 'ProductPrincipals'
+        indexes = [
+            models.Index(fields=['product', 'principal_id'], name='product_principal_idx'),
+            models.Index(fields=['principal_id'], name='principal_idx'),
+            models.Index(fields=['product'], name='product_on_principal_idx')
+        ]
+        
+class UnitProduct(BaseModel):
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='product_units')
+    unit_id = models.BigIntegerField()
+    
+    class Meta:
+        db_table = 'unit_products'
+        managed = True
+        verbose_name_plural = 'UnitProducts'
+        indexes = [
+            models.Index(fields=['product', 'unit_id'], name='product_unit_idx'),
+            models.Index(fields=['unit_id'], name='unit_idx'),
+            models.Index(fields=['product'], name='product_on_unit_idx')
+        ]
+        
+class Coa(BaseModel):
+    name = models.CharField(max_length=100)
     code = models.CharField(max_length=24, unique=True)
-
-    description = models.TextField(null=True, blank=True)
-
+    
     parent = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, blank=True, related_name='children', db_index=True)
-
-    class Meta:
-        db_table = 'budget_code'
-        managed = True
-        verbose_name_plural = 'code_budgets'
-        indexes = [
-            models.Index(fields=['parent'])
-        ]
     
-    def __str__(self):
-        return f"{self.name} - {self.code}"
-
-class BudgetCompanies(BaseModel):
-    budget_code = models.ForeignKey('BudgetCode', on_delete=models.CASCADE, related_name='budget_companies', db_index=True)
-    company_id = models.IntegerField(db_index=True)
-
     class Meta:
-        db_table = 'budget_code__company'
+        db_table = 'coas'
         managed = True
-        verbose_name_plural = 'budget_companies'
+        verbose_name_plural = 'Coas'
         indexes = [
-            models.Index(fields=['budget_code', 'company_id'])
+            models.Index(fields=['parent'], name='coa_parent_idx')
         ]
 
-    def __str__(self):
-        return f"{self.budget_code.code} - company_id: {self.company_id}"
+class Budget(BaseModel):
+    name = models.CharField(max_length=100)
+    code = models.CharField(max_length=24, unique=True)
+    description = models.TextField(null=True, blank=True)
+    coa = models.ManyToManyField('Coa', related_name='budgets')
     
-class BudgetUnits(BaseModel):
-    budget_code = models.ForeignKey('BudgetCode', on_delete=models.CASCADE, related_name='budget_units', db_index=True)
-    unit_id = models.IntegerField(db_index=True)
+    class Meta:
+        db_table = 'budgets'
+        managed = True
+        verbose_name_plural = 'Budgets'
+        
+class UnitBudget(BaseModel):
+    unit_id = models.BigIntegerField()
+    budget = models.ForeignKey('Budget', on_delete=models.CASCADE, related_name='unit_budgets')
 
     class Meta:
-        db_table = 'budget_code__unit'
+        db_table = 'unit_budgets'
         managed = True
-        verbose_name_plural = 'budget_units'
+        verbose_name_plural = 'UnitBudgets'
         indexes = [
-            models.Index(fields=['budget_code', 'unit_id'])
+            models.Index(fields=['unit_id', 'budget'], name='unit_budget_idx'),
+            models.Index(fields=['unit_id'], name='unit_on_budget_idx'),
+            models.Index(fields=['budget'], name='budget_idx')
         ]
 
-class YearlyTarget(BaseModel):
-    company_id = models.IntegerField()
-    year = models.IntegerField()
-    value = models.DecimalField(max_digits=16, decimal_places=2)
-
+class TargetEstimation(BaseModel):
+    product = models.ForeignKey('Product', on_delete=models.CASCADE, related_name='target_estimations')
+    unit_id = models.BigIntegerField()
+    avg_3_months = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
+    quantity = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
+    hna = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
+    
+    disc_on_fkt = models.DecimalField(max_digits=4, decimal_places=4, null=True, blank=True)
+    value_disc = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
+    
     class Meta:
-        db_table = 'yearly_target'
+        db_table = 'target_estimations'
         managed = True
-        verbose_name_plural = 'YearlyTargets'
+        verbose_name_plural = 'TargetEstimations'
         indexes = [
-            models.Index(fields=['year', 'company_id']),
-            models.Index(fields=['company_id']),
-            models.Index(fields=['year'])
+            models.Index(fields=['product', 'unit_id'], name='product_unit_target_idx'),
+            models.Index(fields=['unit_id'], name='unit_target_idx'),
+            models.Index(fields=['product'], name='product_target_idx')
         ]
-    
-    def __str__(self):
-        return f"Target at {self.year} is on {self.value}"
-
-class MonthlyTarget(BaseModel):
-    yearly = models.ManyToManyField('YearlyTarget', related_name='year_months')
-    month = models.IntegerField()
-    value = models.DecimalField(max_digits=16, decimal_places=2)
-
-    class Meta:
-        db_table = 'monthly_target'
-        managed = True
-        verbose_name_plural = 'MonthlyTargets'
-        indexes = [
-            models.Index(fields=['month'])
-        ]
-    
-    def __str__(self):
-        month_name = calendar.month_name[self.month]
-        return f"Target {month_name}, {self.yearly.year} is on {self.value}"
-    
-class UnitTarget(BaseModel):
-    target_yearly = models.ForeignKey('YearlyTarget', on_delete=models.CASCADE, related_name='target_units')
-    value = models.DecimalField(max_digits=16, decimal_places=2)
-    unit_id = models.IntegerField()
-
-    class Meta:
-        db_table = 'target_unit'
-        managed = True
-        verbose_name_plural = 'TargetUnits'
-        indexes = [
-            models.Index(fields=['target_yearly'])
-        ]
-    
-    def __str__(self):
-        return f"Unit_id: {self.unit_id}, year: {self.target_yearly.year}, value: {self.value}"
-    
-class TargetProduct(BaseModel):
-    units = models.ManyToManyField('UnitTarget', related_name='products')
-    year = models.ForeignKey('YearlyTarget', on_delete=models.CASCADE, related_name='year_product', db_index=True)
-    product = models.ForeignKey('Product', on_delete=models.CASCADE, related_name='product_target', db_index=True)
-    value = models.DecimalField(max_digits=16, decimal_places=2)
-
-    class Meta:
-        db_table = 'target_product'
-        managed = True
-        verbose_name_plural = 'TargetProducts'
-        indexes = [
-            models.Index(fields=['year']),
-            models.Index(fields=['product'])
-        ]
-
-    def __str__(self):
-        return f"Product name: {self.product_name}, Year: {self.year.year}, Value: IDR {self.value}"
-
-class BudgetUnitYear(BaseModel):
-    unit_id = models.IntegerField(db_index=True)
-    code = models.ForeignKey('BudgetCode', on_delete=models.CASCADE, related_name='budget_unit')
-    year = models.ForeignKey('YearlyTarget', on_delete=models.CASCADE, related_name='year_unit')
-    value = models.DecimalField(max_digits=16, decimal_places=2)
-
-    class Meta:
-        db_table = 'budget_unit_yearly'
-        managed = True
-        verbose_name_plural = 'BudgetYearly'
-        indexes = [
-            models.Index(fields=['unit_id']),
-            models.Index(fields=['year'])
-        ]
-    
-    def __str__(self):
-        return f"Unit id: {self.unit_id}, Year: {self.year.year}, Value: IDR {self.value}"

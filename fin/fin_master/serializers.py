@@ -1,5 +1,8 @@
 from rest_framework import serializers
 from .models import *
+from fin.local_settings import *
+import requests
+from drf_spectacular.utils import extend_schema_field
 
 """
 
@@ -20,6 +23,27 @@ May God of Knowledge Bless You.
 
 
 """
+
+class UserField(serializers.Field):
+    """
+    Custom field buat ganti integer user_id jadi dict user data.
+    Ambil dari context['users_map'].
+    """
+    def to_representation(self, value):
+        users_map = self.context.get("users_map", {})
+        data = users_map.get(value, {"id": value}) if value else None
+        return data
+    
+UserField = extend_schema_field(
+    {
+        "type": "object",
+        "properties": {
+            "id": {"type": "integer"},
+            "username": {"type": "string"},
+            "email": {"type": "string"}
+        }
+    }
+)(UserField)
 
 class DynamicModelSerializer(serializers.ModelSerializer):
     """
@@ -55,7 +79,16 @@ class DynamicModelSerializer(serializers.ModelSerializer):
         if exclude is not None:
             for field_name in exclude:
                 self.fields.pop(field_name, None)
+    
+    def get_fields(self):
+        fields = super().get_fields()
 
+        # ganti semua *_by jadi UserField
+        for by_field in ["created_by", "updated_by", "deleted_by"]:
+            if by_field in fields:
+                fields[by_field] = UserField()
+
+        return fields
 
 class BaseTreeSerializer(DynamicModelSerializer):
     """
@@ -152,52 +185,56 @@ class SmartRecursive(serializers.Serializer):
 
         return serializer_class(value, **kwargs).data
 
-class CoaSerializer(BaseTreeSerializer):
-    parent = SmartRecursive(read_only=True, mode='parent')
-    children = SmartRecursive(read_only=True, many=True, mode='children')
+class ProductCodeSerializer(BaseTreeSerializer):
 
+    class Meta:
+        model = ProductCode
+        fields = '__all__'
+        
+class ProductPrincipalSerializer(BaseTreeSerializer):
+    
+    class Meta:
+        model = ProductPrincipal
+        fields = '__all__'
+        
+class UnitProductSerializer(BaseTreeSerializer):
+
+    class Meta:
+        model = UnitProduct
+        fields = '__all__'
+
+class ProductSerializer(BaseTreeSerializer):
+    product_codes = ProductCodeSerializer(many=True)
+    product_principals = ProductPrincipalSerializer(many=True)
+    product_units = UnitProductSerializer(many=True)
+
+    class Meta:
+        model = Product
+        fields = '__all__'
+        
+class CoaSerializer(BaseTreeSerializer):
+    
     class Meta:
         model = Coa
         fields = '__all__'
 
-class BudgetCodeSerializer(BaseTreeSerializer):
-    parent = SmartRecursive(read_only=True, mode='parent')
-    children = SmartRecursive(read_only=True, many=True, mode='children')
-
+class UnitBudgetSerializer(BaseTreeSerializer):
+    
     class Meta:
-        model = BudgetCode
+        model = UnitBudget
         fields = '__all__'
 
-class YearlyTargetSerializer(BaseTreeSerializer):
+class BudgetSerializer(BaseTreeSerializer):
+    unit = UnitBudgetSerializer(many=True)
+    coa = CoaSerializer(many=True)
+    
     class Meta:
-        model = YearlyTarget
+        model = Budget
         fields = '__all__'
-
-class MonthlyTargetSerializer(BaseTreeSerializer):
-    yearly = YearlyTargetSerializer(read_only=True)
-    class Meta:
-        model = MonthlyTarget
-        fields = '__all__'
-
-class UnitTargetSerializer(BaseTreeSerializer):
-    target_yearly = YearlyTargetSerializer(read_only=True)
+        
+class TargetEstimationSerializer(BaseTreeSerializer):
+    product = ProductSerializer()
 
     class Meta:
-        model = UnitTarget
-        fields = '__all__'
-
-class TargetProductSerializer(BaseTreeSerializer):
-    unit = UnitTargetSerializer(many=True, read_only=True)
-    year = YearlyTargetSerializer(read_only=True)
-
-    class Meta:
-        model = TargetProduct
-        fields = '__all__'
-
-class BudgetUnitYearSerializer(BaseTreeSerializer):
-    code = BudgetCodeSerializer(read_only=True)
-    year = YearlyTargetSerializer(read_only=True)
-
-    class Meta:
-        model = BudgetUnitYear
+        model = TargetEstimation
         fields = '__all__'

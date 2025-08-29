@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'fin_master',
     'fin_dump',
     'fin.core',
+    'fin_trx',
 ]
 
 REST_FRAMEWORK = {
