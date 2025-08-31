@@ -66,3 +66,54 @@ class ProductViewSet(BaseViewSet):
     )
     def list(self, request, *args, **kwargs):
         return super().list(request, *args, **kwargs)
+    
+@extend_schema(tags=["ProductCode"])
+class ProductCodeViewSet(BaseViewSet):
+    queryset = ProductCode.objects.all().order_by('-created_by')
+    serializer_class = ProductCodeSerializer
+    filterset_class = ProductCodeFilter
+
+    @extend_schema(
+        description=f"{inspect.getdoc(BaseViewSet)}\n\nAmbil daftar company dengan pagination & filter.",
+        parameters=[
+            *generate_filter_parameters_from_basefilter(ProductCode, BaseFilter),
+            *BASE_PARAMS
+        ],
+        responses={200: ProductCodeSerializer}
+    )
+    def list(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)
+
+@extend_schema(tags=["ProductPrincipal"])
+class ProductPrincipalViewSet(BaseViewSet):
+    queryset = ProductPrincipal.objects.all().order_by('-created_by')
+    serializer_class = ProductPrincipalSerializer
+    filterset_class = ProductPrincipalFilter
+
+    @extend_schema(
+        description=f"{inspect.getdoc(BaseViewSet)}\n\nAmbil daftar company dengan pagination & filter.",
+        parameters=[
+            *generate_filter_parameters_from_basefilter(ProductPrincipal, BaseFilter),
+            *BASE_PARAMS
+        ],
+        responses={200: ProductPrincipalSerializer}
+    )
+    def list(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)
+
+@extend_schema(tags=["UnitProduct"])
+class UnitProductViewSet(BaseViewSet):
+    queryset = UnitProduct.objects.all().order_by('-created_by')
+    serializer_class = UnitProductSerializer
+    filterset_class = UnitProductFilter
+
+    @extend_schema(
+        description=f"{inspect.getdoc(BaseViewSet)}\n\nAmbil daftar company dengan pagination & filter.",
+        parameters=[
+            *generate_filter_parameters_from_basefilter(UnitProduct, BaseFilter),
+            *BASE_PARAMS
+        ],
+        responses={200: UnitProductSerializer}
+    )
+    def list(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)

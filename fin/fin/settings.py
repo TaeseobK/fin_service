@@ -38,8 +38,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'drf_spectacular_sidecar',
     'drf_spectacular',
+    'drf_spectacular_extras',
     'rest_framework',
     'django_filters',
     'fin_master',
@@ -53,24 +53,6 @@ REST_FRAMEWORK = {
     "EXCEPTION_HANDLER": "fin.config.custom_exception_handler",
 }
 
-SPECTACULAR_SETTINGS = {
-    'TITLE': 'FIN_SERVICE',
-    'DESCRIPTION': 'Documentation for consuming API from FINANCE DATABASE',
-    'VERSION': '1.0.0',
-    'SERVE_INCLUDE_SCHEMA': False,
-    'SECURITY': [{'TokenAuth': []}],
-    'APPEND_COMPONENTS': {
-        'securitySchemes': {
-            'TokenAuth': {
-                'type': 'apiKey',
-                'in': 'header',
-                'name': 'Authorization',
-                'description': 'Token dari Auth Service. Format: Token <token>'
-            }
-        },
-    },
-}
-
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -79,14 +61,15 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'fin.auth_middleware.VerifyAuthMiddleware',
-    'fin.auth_middleware.AuthServiceLogoutMiddleware',
+    'fin.middleware.VerifyAuthMiddleware',
+    'fin.middleware.AuthServiceLogoutMiddleware',
+    'fin.middleware.PrometheusMiddleware',
 ]
 
 ROOT_URLCONF = 'fin.urls'
 
 AUTHENTICATION_BACKENDS = [
-    'fin.auth_middleware.AuthServiceBackend',
+    'fin.middleware.AuthServiceBackend',
     "django.contrib.auth.backends.ModelBackend",
 ]
 
@@ -95,8 +78,28 @@ SPECTACULAR_SETTINGS = {
     'DESCRIPTION': f"Documentation for consuming API from FINANCE Databases\n\nWARNING NOTES:\n\n{Path(BASE_DIR, 'keys/warning.md').read_text(encoding='utf-8')}",
     'VERSION': '1.0.0',
     'SERVE_INCLUDE_SCHEMA': True,
+    'SWAGGER_UI_DIST': 'SIDECAR',
+    'SWAGGER_UI_SETTINGS': {
+        'deepLinking': True,
+        'persistAuthorization': True,
+        'displayOperationId': True,
+        'filter': True,
+        'theme': 'green',
+        'docExpansion': 'none',
+        'showExtensions': True,
+        'displayRequestDuration': True,
+    }
 }
 
+SPECTACULAR_EXTRAS_SETTINGS = {
+    'SCALAR_UI_SETTINGS': {
+        'theme': 'deepSpace',
+        'layout': 'modern',
+        'showSidebar': True,
+        'hideDownloadButton': False,
+        'searchHotKey': 'k',
+    },
+}
 
 TEMPLATES = [
     {
@@ -171,3 +174,14 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
 CSRF_TRUSTED_ORIGINS = CSRF_SERVICE
+
+CACHES = {
+    "default": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": "redis://127.0.0.1:6379/1",
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+            "SERIALIZER": "django_redis.serializers.json.JSONSerializer",
+        }
+    }
+}

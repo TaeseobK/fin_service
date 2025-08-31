@@ -16,6 +16,7 @@ class Product(BaseModel):
         indexes = [
             models.Index(fields=['parent'], name='children')
         ]
+        ordering = ['-id']
         
     def __str__(self):
         return f"{self.name} - {self.code}"
@@ -28,6 +29,7 @@ class ProductCode(BaseModel):
         db_table = 'product_codes'
         managed = True
         verbose_name_plural = 'ProductCodes'
+        ordering = ['-id']
     
 class ProductPrincipal(BaseModel):
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='product_principals')
@@ -42,6 +44,7 @@ class ProductPrincipal(BaseModel):
             models.Index(fields=['principal_id'], name='principal_idx'),
             models.Index(fields=['product'], name='product_on_principal_idx')
         ]
+        ordering = ['-id']
         
 class UnitProduct(BaseModel):
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='product_units')
@@ -56,6 +59,7 @@ class UnitProduct(BaseModel):
             models.Index(fields=['unit_id'], name='unit_idx'),
             models.Index(fields=['product'], name='product_on_unit_idx')
         ]
+        ordering = ['-id']
         
 class Coa(BaseModel):
     name = models.CharField(max_length=100)
@@ -70,6 +74,7 @@ class Coa(BaseModel):
         indexes = [
             models.Index(fields=['parent'], name='coa_parent_idx')
         ]
+        ordering = ['-id']
 
 class Budget(BaseModel):
     name = models.CharField(max_length=100)
@@ -81,6 +86,7 @@ class Budget(BaseModel):
         db_table = 'budgets'
         managed = True
         verbose_name_plural = 'Budgets'
+        ordering = ['-id']
         
 class UnitBudget(BaseModel):
     unit_id = models.BigIntegerField()
@@ -95,6 +101,7 @@ class UnitBudget(BaseModel):
             models.Index(fields=['unit_id'], name='unit_on_budget_idx'),
             models.Index(fields=['budget'], name='budget_idx')
         ]
+        ordering = ['-id']
 
 class TargetEstimation(BaseModel):
     product = models.ForeignKey('Product', on_delete=models.CASCADE, related_name='target_estimations')
@@ -115,3 +122,4 @@ class TargetEstimation(BaseModel):
             models.Index(fields=['unit_id'], name='unit_target_idx'),
             models.Index(fields=['product'], name='product_target_idx')
         ]
+        ordering = ['-id']

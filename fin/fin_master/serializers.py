@@ -1,8 +1,9 @@
 from rest_framework import serializers
 from .models import *
 from fin.local_settings import *
-import requests
+from fin.config import fetch_external_data
 from drf_spectacular.utils import extend_schema_field
+from drf_spectacular.types import OpenApiTypes
 
 """
 
@@ -198,10 +199,20 @@ class ProductPrincipalSerializer(BaseTreeSerializer):
         fields = '__all__'
         
 class UnitProductSerializer(BaseTreeSerializer):
+    unit = serializers.SerializerMethodField()
 
     class Meta:
         model = UnitProduct
         fields = '__all__'
+    
+    @extend_schema_field(OpenApiTypes.OBJECT)
+    def get_unit(self, obj):
+        return fetch_external_data(
+            service_name="HR",
+            endpoint=f"{HR_SERVICE}/api/hr/master/unit/{obj.unit_id}/?exclude=children,parent,created_by,updated_by,deleted_by",
+            key_suffix=f"unit:{obj.unit_id}",
+            timeout=1800
+        )
 
 class ProductSerializer(BaseTreeSerializer):
     product_codes = ProductCodeSerializer(many=True)
@@ -225,8 +236,8 @@ class UnitBudgetSerializer(BaseTreeSerializer):
         fields = '__all__'
 
 class BudgetSerializer(BaseTreeSerializer):
-    unit = UnitBudgetSerializer(many=True)
-    coa = CoaSerializer(many=True)
+    unit = UnitBudgetSerializer(many=True, read_only=True)
+    coa = CoaSerializer(many=True, read_only=True)
     
     class Meta:
         model = Budget

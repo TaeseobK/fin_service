@@ -14,30 +14,35 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
+from re import DEBUG
 from django.contrib import admin
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from fin_master.views import *
+from fin_master.views import CoaViewSet, ProductViewSet, ProductPrincipalViewSet, ProductCodeViewSet, UnitProductViewSet
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 from django.conf import settings
 from django.conf.urls.static import static
+from fin_dump.views import metrics_view
+from drf_spectacular_extras.views import SpectacularScalarView
 
 router = DefaultRouter()
 
 router.register(r'master/coa', CoaViewSet)
 router.register(r'master/product', ProductViewSet)
-# router.register(r'master/yearly-target', YearlyTargetViewSet)
-# router.register(r'master/monthly-target', MonthlyTargetViewSet)
-# router.register(r'master/unit-target', UnitTargetViewSet)
-# router.register(r'master/product-target', TargetProductViewSet)
-# router.register(r'master/budget-unit-yearly', BudgetUnitYearViewSet)
+router.register(r'master/product-principal', ProductPrincipalViewSet)
+router.register(r'master/product-code', ProductCodeViewSet)
+router.register(r'master/unit-product', UnitProductViewSet)
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/fin/', include(router.urls)),
 
     path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
-    path('api/docs/', SpectacularSwaggerView.as_view(url_name='schema'), name='swager-ui'),
+    path('api/docs/swagger/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
+    path('api/docs/scalar/', SpectacularScalarView.as_view(url_name='schema'), name='scalar-ui'),
+
+    path('metrics/', metrics_view, name='metrics'),
 ]
 
-urlpatterns + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+if DEBUG:
+    urlpatterns + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
